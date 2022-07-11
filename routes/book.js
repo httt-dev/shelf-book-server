@@ -9,7 +9,8 @@ routerBook.get('/', async function (req, res) {
     try {
         const sql = `select 
                         pos.*,
-                        log.*
+                        log.*,
+                        '' thumbnail
                     from drfid_product_pos pos
                     left outer join (
                     
@@ -20,24 +21,27 @@ routerBook.get('/', async function (req, res) {
                         else '' 
                     end shelf_status
                     from drfid_log_move dlm
-                    where dlm_cnt <> 0 
-                    and dlm_cnt = ( 
+                    where dlm_cnt = ( 
                                     select max(dlm2.dlm_cnt) 
                                     from drfid_log_move dlm2 
                                     where dlm2.dlm_rfid_cd = dlm.dlm_rfid_cd 
                                 ) 
                     ) log
                     on pos.dpp_rfid_cd = log.dlm_rfid_cd
+                    order by pos.dpp_shelf_pos,pos.dpp_shelf_col_pos
+
     `;
         console.log('call book api');
         const rows = await pool.query(sql);
         res.setHeader('Content-Type', 'application/json');
+
         res.status(200).json(rows);
 
     } catch (error) {
         res.status(400).send(error.message)
     }
 });
+
 
 module.exports = routerBook;
 
